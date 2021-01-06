@@ -6,8 +6,6 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-RUN mkdir -p /app/src
+COPY src/ .
 
-COPY src/ /app/src
-
-CMD ["python", "./src/ingest_tweets_streaming.py"]
+CMD ["python", "./ingest_tweets_streaming.py"]
