@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY src/ .
 
-CMD ["python", "src/ingest_tweets_streaming.py"]
+CMD ["python", "ingest_tweets_streaming.py"]
