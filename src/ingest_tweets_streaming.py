@@ -6,7 +6,7 @@ import requests
 from google.cloud import firestore
 from google.cloud import pubsub_v1
 
-PROJECT_ID = "delta-cosmos-292309"
+PROJECT_ID = "sharp-haven-301406"
 TOPIC_ID = "tb-tweet-streaming"
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,9 @@ def get_handles():
     h_ref = db.collection(u'tb-handles')
     logging.info("Getting list of handles...")
     docs = h_ref.stream()
-    list_of_handles = [doc.to_dict()['username'] for doc in docs]
+    list_of_handles = dict()
+    for doc in docs:
+        list_of_handles[doc.to_dict()['username']] = doc.to_dict()['id']
     return list_of_handles
 
 
@@ -130,7 +132,7 @@ def set_rules(headers, handles):
     logging.info(json.dumps(response.json()))
 
 
-def get_stream(headers):
+def get_stream(headers, rev_handles_dict):
     # Initializing fire store client
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(PROJECT_ID, TOPIC_ID)
@@ -150,6 +152,7 @@ def get_stream(headers):
     for response_line in response.iter_lines():
         if response_line:
             json_response = json.loads(response_line)
+            json_response['data']['username'] = rev_handles_dict[json_response['data']['author_id']]
             # logging.info(json.dumps(json_response, indent=4, sort_keys=True))
             # Data must be a byte string
             response_str = str(json_response["data"]).encode("utf-8")
@@ -161,17 +164,19 @@ def get_stream(headers):
 
             doc_ref = db.collection(u'tb-tweets').document(json_response['data']['id'])
             doc_ref.set(json_response['data'])
-            logging.info(f"Message written to firestore. Tweet ID: {json_response['data']['id']}")
+            logging.info(f"Message written to fire store. Tweet ID: {json_response['data']['id']}")
 
 
 def main():
     bearer_token = os.environ.get("BEARER_TOKEN")
     headers = create_headers(bearer_token)
     rules = get_rules(headers)
-    handles = get_handles()
+    handles_dict = get_handles()
+    rev_handles_dict = {v: k for k, v in handles_dict.items()}
+    handles = list(handles_dict.keys())
     delete_all_rules(headers, rules)
     set_rules(headers, handles)
-    get_stream(headers)
+    get_stream(headers, rev_handles_dict)
 
 
 if __name__ == "__main__":
