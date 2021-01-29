@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tb-tweet-ingestion-streaming-deployment
+spec:
+  selector:
+    matchLabels:
+      app: tb-tweet-ingestion-streaming
+  template:
+    metadata:
+      labels:
+        app: tb-tweet-ingestion-streaming
+    spec:
+      volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: twitter-battle-key
+      containers:
+      - name: tb-tweet-ingestion-streaming
+        image: gcr.io/sharp-haven-301406/tb-ingest-tweets-streaming
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+          - name: google-cloud-key
+            mountPath: /var/secrets/google
+        env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json

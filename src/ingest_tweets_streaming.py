@@ -1,10 +1,13 @@
 import json
 import logging
 import os
+from datetime import datetime
 
 import requests
 from google.cloud import firestore
 from google.cloud import pubsub_v1
+
+from helpers import retry
 
 PROJECT_ID = "sharp-haven-301406"
 TOPIC_ID = "tb-tweet-streaming"
@@ -13,8 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def get_handles():
-    """
-    Get list of ids of Twitter handles
+    """Get list of ids of Twitter handles
     Returns:
         List of ids for Twitter handles
     """
@@ -29,15 +31,17 @@ def get_handles():
 
 
 def create_headers(bearer_token):
+    """Returns authorization header
+    Args:
+        bearer_token: Bearer token
+
+    """
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
     return headers
 
 
 def get_params():
-    """
-    Returns:
-        List of fields required of tweet objects
-
+    """Returns List of fields required of tweet objects
     """
     return {"tweet.fields": "id,text,author_id,conversation_id,"
                             "created_at,geo,in_reply_to_user_id,lang,"
@@ -45,8 +49,7 @@ def get_params():
 
 
 def get_rules(headers):
-    """
-    Fetching existing rules
+    """Fetching existing rules
     Args:
         headers: Header to pass
 
@@ -66,14 +69,11 @@ def get_rules(headers):
 
 
 def delete_all_rules(headers, rules):
-    """
-    Delete existing rules
+    """Delete existing rules
     Args:
         headers: Header content
         rules: List of rules
 
-    Returns:
-        None
     """
     if rules is None or "data" not in rules:
         return None
@@ -96,14 +96,11 @@ def delete_all_rules(headers, rules):
 
 
 def set_rules(headers, handles):
-    """
-    Set new rules
+    """Set new rules
     Args:
         headers: Header content
         handles: List of handles to filter
 
-    Returns:
-        None
     """
 
     # You can adjust the rules if needed
@@ -132,8 +129,9 @@ def set_rules(headers, handles):
     logging.info(json.dumps(response.json()))
 
 
+@retry
 def get_stream(headers, rev_handles_dict):
-    # Initializing fire store client
+    # Initializing fire store and Pubsub client
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(PROJECT_ID, TOPIC_ID)
 
@@ -163,6 +161,8 @@ def get_stream(headers, rev_handles_dict):
             logging.info(f"Ingested message to pub sub. Tweet ID: {json_response['data']['id']}")
 
             doc_ref = db.collection(u'tb-tweets').document(json_response['data']['id'])
+            json_response['data']['last_updated'] = datetime.now()
+            json_response['data']['update_type'] = 'streaming'
             doc_ref.set(json_response['data'])
             logging.info(f"Message written to fire store. Tweet ID: {json_response['data']['id']}")
 

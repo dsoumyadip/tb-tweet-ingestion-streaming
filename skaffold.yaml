@@ -1,0 +1,14 @@
+apiVersion: skaffold/v2beta10
+kind: Config
+metadata:
+  name: tb-tweet-ingestion-streaming
+build:
+  artifacts:
+  - image: gcr.io/sharp-haven-301406/tb-ingest-tweets-streaming
+    context: .
+    docker: {}
+deploy:
+  kubectl:
+    manifests:
+    - deployment.yaml
+    - service-account-key.yaml
