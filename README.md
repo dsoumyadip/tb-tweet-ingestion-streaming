@@ -6,7 +6,6 @@ This app connects with Twitter stream API. It fetches real time tweets and proce
 
 ```shell
 export GOOGLE_APPLICATION_CREDENTIALS=/PATH_TO_SERVICE_ACCOUNT_KEY.json
-kubectl apply -f service-account-key.yaml
 
 ```
 
