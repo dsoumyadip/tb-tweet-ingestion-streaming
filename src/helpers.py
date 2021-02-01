@@ -1,8 +1,14 @@
 import logging
 import time
 from functools import wraps
+from google.cloud import language_v1
 
 logging.basicConfig(level=logging.INFO)
+
+CLIENT = language_v1.LanguageServiceClient()
+
+TYPE_ = language_v1.Document.Type.PLAIN_TEXT
+ENCODING_TYPE = language_v1.EncodingType.UTF8
 
 
 def retry(func=None, exception=Exception, n_tries=5, delay=10, backoff=2, logger=False):
@@ -40,3 +46,5 @@ def retry(func=None, exception=Exception, n_tries=5, delay=10, backoff=2, logger
         return func(*args, **kwargs)
 
     return inner_wrapper
+
+

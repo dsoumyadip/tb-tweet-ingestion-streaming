@@ -7,6 +7,7 @@ name = "pypi"
 google-cloud-firestore = "*"
 requests = "*"
 google-cloud-pubsub = "*"
+google-cloud-language = "*"
 
 [dev-packages]
 

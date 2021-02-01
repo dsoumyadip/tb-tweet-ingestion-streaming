@@ -8,6 +8,7 @@ from google.cloud import firestore
 from google.cloud import pubsub_v1
 
 from helpers import retry
+from update_entity_sentiment import get_entity_sentiment
 
 PROJECT_ID = "sharp-haven-301406"
 TOPIC_ID = "tb-tweet-streaming"
@@ -153,18 +154,19 @@ def get_stream(headers, rev_handles_dict):
             json_response['data']['username'] = rev_handles_dict[json_response['data']['author_id']]
             # logging.info(json.dumps(json_response, indent=4, sort_keys=True))
             # Data must be a byte string
-            response_str = str(json_response["data"]).encode("utf-8")
+            json_response['data']['last_updated'] = datetime.now()
+            json_response['data']['update_type'] = 'streaming'
+            json_response_with_entity_s_score = get_entity_sentiment(json_response['data'])
+            response_str = str(json_response_with_entity_s_score).encode("utf-8")
 
             # When you publish a message, the client returns a future.
             future = publisher.publish(topic_path, response_str)
             logging.info(future.result())
-            logging.info(f"Ingested message to pub sub. Tweet ID: {json_response['data']['id']}")
+            logging.info(f"Ingested message to pub sub. Tweet ID: {json_response_with_entity_s_score['id']}")
 
-            doc_ref = db.collection(u'tb-tweets').document(json_response['data']['id'])
-            json_response['data']['last_updated'] = datetime.now()
-            json_response['data']['update_type'] = 'streaming'
-            doc_ref.set(json_response['data'])
-            logging.info(f"Message written to fire store. Tweet ID: {json_response['data']['id']}")
+            doc_ref = db.collection(u'tb-tweets').document(json_response_with_entity_s_score['id'])
+            doc_ref.set(json_response_with_entity_s_score)
+            logging.info(f"Message written to fire store. Tweet ID: {json_response_with_entity_s_score['id']}")
 
 
 def main():
