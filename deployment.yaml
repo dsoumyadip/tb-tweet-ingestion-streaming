@@ -31,3 +31,8 @@ spec:
         env:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: /var/secrets/google/key.json
+          - name: BEARER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: twitter-battle-twitterdev-key
+                key: BEARER_TOKEN
