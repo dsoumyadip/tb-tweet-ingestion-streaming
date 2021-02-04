@@ -10,8 +10,8 @@ from google.cloud import pubsub_v1
 from helpers import retry
 from update_entity_sentiment import get_entity_sentiment
 
-PROJECT_ID = "sharp-haven-301406"
-TOPIC_ID = "tb-tweet-streaming"
+PROJECT_ID = "psychic-outcome-303709"
+TOPIC_ID = "tb-incoming-message-bus"
 
 logging.basicConfig(level=logging.INFO)
 

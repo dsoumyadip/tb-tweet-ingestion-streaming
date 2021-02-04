@@ -17,7 +17,7 @@ spec:
             secretName: twitter-battle-key
       containers:
       - name: tb-tweet-ingestion-streaming
-        image: gcr.io/sharp-haven-301406/tb-ingest-tweets-streaming
+        image: gcr.io/psychic-outcome-303709/tb-ingest-tweets-streaming
         resources:
           requests:
             memory: "32Mi"

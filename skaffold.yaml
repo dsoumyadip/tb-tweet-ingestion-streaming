@@ -4,7 +4,7 @@ metadata:
   name: tb-tweet-ingestion-streaming
 build:
   artifacts:
-  - image: gcr.io/sharp-haven-301406/tb-ingest-tweets-streaming
+  - image: gcr.io/psychic-outcome-303709/tb-ingest-tweets-streaming
     context: .
     docker: {}
 deploy:
